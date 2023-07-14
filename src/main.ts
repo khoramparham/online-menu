@@ -1,24 +1,36 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import {
+    DocumentBuilder,
+    SwaggerDocumentOptions,
+    SwaggerModule,
+} from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  // const options = new DocumentBuilder()
-  //   .setTitle('online-menu')
-  //   .setDescription('live menu api')
-  //   .setVersion('v/1')
-  //   .addTag('')
-  //   .build();
-  // const document = SwaggerModule.createDocument(app, options);
-  // SwaggerModule.setup('api-doc', app, document);
+    const app = await NestFactory.create(AppModule);
+    const config = new DocumentBuilder()
+        .setTitle('online-menu')
+        .setDescription('live menu api')
+        .setContact('parham khoram', ' ', 'khoramparham@gmailcom')
+        .setVersion('1.0.0.')
+        .addServer('http://localhost:3000')
+        .addBearerAuth(
+            { type: 'http', scheme: 'bearer', bearerFormat: 'Bearer' },
+            'access-token',
+        )
+        .build();
+    const options: SwaggerDocumentOptions = {
+        deepScanRoutes: true,
+    };
+    const document = SwaggerModule.createDocument(app, config, options);
+    SwaggerModule.setup('api-doc', app, document);
 
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  );
-  await app.listen(3000);
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+        }),
+    );
+    await app.listen(3000);
 }
 bootstrap();
