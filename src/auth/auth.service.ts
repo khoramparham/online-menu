@@ -1,6 +1,5 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { AuthDto } from './dto';
-import * as bcrypt from 'bcrypt';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { getOtpDto, checkOtpDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt/dist';
 import { ConfigService } from '@nestjs/config';
@@ -11,47 +10,79 @@ export class AuthService {
         private jwt: JwtService,
         private config: ConfigService,
     ) {}
-    async signUp(dto: AuthDto) {
+
+    async getOtp(dto: getOtpDto) {
         try {
-            const saltRounds = this.config.get('SALT_ROUNDS');
-            const userFound = await this.findUserByPhone(dto.phone);
-            if (!!userFound) throw new ForbiddenException('');
-            const password = await bcrypt.hash(
-                dto.password,
-                parseInt(saltRounds),
-            );
-            const user = await this.prisma.user.create({
-                data: {
-                    phone: dto.phone,
-                    password,
-                },
-                select: {
-                    id: true,
-                    phone: true,
-                    createdAt: true,
-                },
-            });
+            const OtpCode = this.createRandomNumberForOTP();
+            const user = await this.createUser(dto.phone, OtpCode);
             return user;
         } catch (error) {
             console.log(error);
         }
     }
-    async signIn(dto: AuthDto) {
+    async checkOtp(dto: checkOtpDto) {
         try {
-            const saltRounds = this.config.get('SALT_ROUNDS');
             const user = await this.findUserByPhone(dto.phone);
-            const pwMatch = await bcrypt.compareSync(
-                user.password,
-                dto.password,
+            if (!user)
+                throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
+            if (user.otpCode != dto.otp)
+                throw new HttpException(
+                    'کد ارسال شده اشتباه است',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            const now = new Date().getTime();
+            if (parseInt(user.otpExpiresIn) < now)
+                throw new HttpException('', HttpStatus.UNAUTHORIZED);
+            const access_token = await this.signAccessToken(
+                user.id,
+                user.phone,
             );
-            return this.signToken(user.id, user.phone);
+            const refresh_token = await this.signRefreshToken(
+                user.id,
+                user.phone,
+            );
+            return { access_token, refresh_token };
         } catch (error) {
             console.log(error);
         }
     }
-    async resetPassword(dto: AuthDto) {
+    async refreshToken(user) {
+        const token = await this.signAccessToken(user.id, user.phone);
+        return { refresh_token: token };
+    }
+    async createUser(phone: string, otpCode: number) {
         try {
-        } catch (error) {}
+            const now = new Date().getTime();
+
+            const user = await this.findUserByPhone(phone);
+            if (user) {
+                if (parseInt(user.otpExpiresIn) > now) {
+                    throw new HttpException(
+                        'کد اعتبار سنجی قبلی هنوز منقضی نشده است',
+                        HttpStatus.FORBIDDEN,
+                    );
+                }
+                return await this.prisma.user.update({
+                    where: { phone: phone },
+                    data: {
+                        otpCode: otpCode,
+                        otpExpiresIn: (now + 120000).toString(),
+                    },
+                });
+            }
+            return await this.prisma.user.create({
+                data: {
+                    phone,
+                    otpCode,
+                    otpExpiresIn: (now + 120000).toString(),
+                },
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    createRandomNumberForOTP() {
+        return Math.floor(Math.random() * 89999) + 10000;
     }
     async findUserByPhone(phone: string) {
         const user = await this.prisma.user.findUnique({
@@ -59,18 +90,31 @@ export class AuthService {
                 phone: phone,
             },
         });
+
         return user;
     }
-    signToken(userID: number, phone: string) {
+    signAccessToken(userID: number, phone: string) {
         const payload = {
             sub: userID,
             phone,
         };
-        const secret = this.config.get('SALT_ROUNDS');
-        const token = this.jwt.signAsync(payload, {
-            expiresIn: '15min',
+        const secret = this.config.get('ACCESS_TOKEN_SECRET_KEY');
+        const token = this.jwt.sign(payload, {
             secret: secret,
+            expiresIn: '15min',
         });
-        return { access_token: token };
+        return token;
+    }
+    signRefreshToken(userID: number, phone: string) {
+        const payload = {
+            sub: userID,
+            phone,
+        };
+        const secret = this.config.get('REFRESH_TOKEN_SECRET_KEY');
+        const token = this.jwt.sign(payload, {
+            secret: secret,
+            expiresIn: '1y',
+        });
+        return token;
     }
 }

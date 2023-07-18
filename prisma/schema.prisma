@@ -12,9 +12,11 @@ model User {
   createdAt DateTime @default(now())
 
   phone String @unique 
-  password  String 
+  otpCode Int @default(0)
+  otpExpiresIn String @default(" ")
   email String?
   role  Role  @default(USER)
+  
 }
 enum Role {
   USER
