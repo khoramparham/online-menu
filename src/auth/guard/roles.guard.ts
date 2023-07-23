@@ -1,16 +1,12 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Role } from '../enum/role.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(
-        private readonly reflector: Reflector,
-        private readonly prisma: PrismaService,
-    ) {}
-
+    constructor(private readonly reflector: Reflector) {}
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const requiredRoles = this.reflector.get<string[]>(
+        const requiredRoles = this.reflector.get<Role[]>(
             'roles',
             context.getHandler(),
         );
