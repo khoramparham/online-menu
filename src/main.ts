@@ -16,8 +16,12 @@ async function bootstrap() {
         .setVersion('1.0.0.')
         .addServer('http://localhost:3000')
         .addBearerAuth(
-            { type: 'http', scheme: 'bearer', bearerFormat: 'Bearer' },
-            'access-token',
+            {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            },
+            'access_token',
         )
         .build();
     const options: SwaggerDocumentOptions = {
