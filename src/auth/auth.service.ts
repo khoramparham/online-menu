@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    HttpStatus,
+    Injectable,
+    UnauthorizedException,
+    ForbiddenException,
+} from '@nestjs/common';
 import { getOtpDto, checkOtpDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt/dist';
@@ -23,16 +28,12 @@ export class AuthService {
     async checkOtp(dto: checkOtpDto) {
         try {
             const user = await this.findUserByPhone(dto.phone);
-            if (!user)
-                throw new HttpException('کاربر یافت نشد', HttpStatus.NOT_FOUND);
+            if (!user) throw new UnauthorizedException('کاربر یافت نشد');
             if (user.otpCode != dto.otp)
-                throw new HttpException(
-                    'کد ارسال شده اشتباه است',
-                    HttpStatus.UNAUTHORIZED,
-                );
+                throw new UnauthorizedException('کد ارسال شده اشتباه است');
             const now = new Date().getTime();
             if (parseInt(user.otpExpiresIn) < now)
-                throw new HttpException('', HttpStatus.UNAUTHORIZED);
+                throw new UnauthorizedException('کد ارسال شده منقضی شده است');
             const access_token = await this.signAccessToken(
                 user.id,
                 user.phone,
@@ -57,9 +58,8 @@ export class AuthService {
             const user = await this.findUserByPhone(phone);
             if (user) {
                 if (parseInt(user.otpExpiresIn) > now) {
-                    throw new HttpException(
+                    throw new ForbiddenException(
                         'کد اعتبار سنجی قبلی هنوز منقضی نشده است',
-                        HttpStatus.FORBIDDEN,
                     );
                 }
                 return await this.prisma.user.update({
