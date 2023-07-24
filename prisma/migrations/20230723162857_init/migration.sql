@@ -5,6 +5,7 @@ CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "name" TEXT,
     "phone" TEXT NOT NULL,
     "otpCode" INTEGER NOT NULL DEFAULT 0,
     "otpExpiresIn" TEXT NOT NULL DEFAULT ' ',
