@@ -11,7 +11,7 @@ model User {
   id  Int @id @default(autoincrement())
   createdAt DateTime @default(now())
 
-  name String?
+  name String? 
   phone String @unique 
   otpCode Int @default(0)
   otpExpiresIn String @default(" ")
@@ -22,4 +22,13 @@ model User {
 enum Role {
   USER
   ADMIN
+}
+model Category {
+  id  Int @id @default(autoincrement())
+  name String  @unique @db.VarChar(50)
+  parentsID Int? @unique
+  parents Category? @relation( "CategorySubset",fields: [parentsID],references: [id])
+  subParents Category? @relation("CategorySubset")
+
+  @@index([name,parentsID,id(sort: Desc)])
 }
