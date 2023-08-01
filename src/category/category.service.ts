@@ -9,7 +9,7 @@ export class CategoryService {
     async create(dto: CreateCategoryDto) {
         try {
             const categoryDuplicated = await this.findByName(dto.name);
-            if (!!categoryDuplicated) throw new duplicatedNameException();
+            if (!categoryDuplicated) throw new duplicatedNameException();
             const category = await this.prisma.category.create({
                 data: { name: dto.name },
             });
