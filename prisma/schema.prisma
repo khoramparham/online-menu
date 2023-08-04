@@ -17,7 +17,6 @@ model User {
   otpExpiresIn String @default(" ")
   email String?
   role  Role  @default(USER)
-  
 }
 enum Role {
   USER
@@ -26,9 +25,22 @@ enum Role {
 model Category {
   id  Int @id @default(autoincrement())
   name String  @unique @db.VarChar(50)
+
   parentsID Int? @unique
   parents Category? @relation( "CategorySubset",fields: [parentsID],references: [id])
   subParents Category? @relation("CategorySubset")
-
+  product Product[]
+  
   @@index([name,parentsID,id(sort: Desc)])
+}
+
+model Product{
+  id  Int @id @default(autoincrement())
+  name String  @db.VarChar(50)
+  price Int?
+  description String?  
+  photo String? 
+
+  categoryID Int 
+  category Category? @relation(fields: [categoryID],references: [id])
 }
