@@ -6,9 +6,13 @@ import {
     SwaggerModule,
 } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-
+import { NestExpressApplication } from '@nestjs/platform-express/interfaces';
+import * as path from 'path';
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    app.useStaticAssets(path.join(__dirname, '..', 'public'), {
+        prefix: '/public/',
+    });
     const config = new DocumentBuilder()
         .setTitle('online-menu')
         .setDescription('live menu api')
@@ -33,6 +37,7 @@ async function bootstrap() {
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
+            forbidNonWhitelisted: true,
         }),
     );
     await app.listen(3000);
