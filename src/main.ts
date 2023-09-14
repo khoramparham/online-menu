@@ -5,9 +5,15 @@ import {
     SwaggerDocumentOptions,
     SwaggerModule,
 } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    ValidationPipe,
+} from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express/interfaces';
 import * as path from 'path';
+import { HttpExceptionFilter } from './utils/httpException.filter';
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.useStaticAssets(path.join(__dirname, '..', 'public'), {
@@ -33,11 +39,22 @@ async function bootstrap() {
     };
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('api-doc', app, document);
-
+    app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
             forbidNonWhitelisted: true,
+            stopAtFirstError: true,
+            exceptionFactory: (errors) => {
+                const result = errors.map((error) => ({
+                    message:
+                        error.constraints[Object.keys(error.constraints)[0]],
+                }));
+                return new HttpException(
+                    result[0].message,
+                    HttpStatus.BAD_REQUEST,
+                );
+            },
         }),
     );
     await app.listen(3000);
