@@ -5,7 +5,6 @@ import { changeRoleDto } from './dto';
 @Injectable()
 export class UserService {
     constructor(private readonly prisma: PrismaService) {}
-    // async() {}
     async changeRoleByAdmin(id: string, dto: changeRoleDto) {
         const user = await this.findUserByID(id);
         if (!user) throw new NotFoundException('کاربر مورد نظر یافت نشد');
@@ -24,7 +23,7 @@ export class UserService {
     async findUserByID(id: string) {
         const user = await this.prisma.user.findUnique({
             where: {
-                id: parseInt(id),
+                id,
             },
         });
 

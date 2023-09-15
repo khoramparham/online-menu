@@ -33,7 +33,7 @@ export class AuthService {
         const refresh_token = await this.signRefreshToken(user.id, user.phone);
         return { access_token, refresh_token };
     }
-    async refreshToken(userID: number, phone: string) {
+    async refreshToken(userID: string, phone: string) {
         const token = this.signAccessToken(userID, phone);
         return { refresh_token: token };
     }
@@ -71,7 +71,7 @@ export class AuthService {
         });
         return user;
     }
-    signAccessToken(userID: number, phone: string) {
+    signAccessToken(userID: string, phone: string) {
         const payload = {
             sub: userID,
             phone,
@@ -83,7 +83,7 @@ export class AuthService {
         });
         return token;
     }
-    signRefreshToken(userID: number, phone: string) {
+    signRefreshToken(userID: string, phone: string) {
         const payload = {
             sub: userID,
             phone,
