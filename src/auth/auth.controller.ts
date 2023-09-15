@@ -1,12 +1,4 @@
-import {
-    Controller,
-    Post,
-    Get,
-    Param,
-    Body,
-    UseGuards,
-    HttpCode,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { checkOtpDto, getOtpDto, refreshTokenDto } from './dto';
 import { AuthService } from './auth.service';
 import {
@@ -16,6 +8,7 @@ import {
     ApiOkResponse,
     ApiOperation,
     ApiTags,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { GetUser } from './decorator';
 import { RefreshJwtGuard } from './guard/refreshJwt.guard';
@@ -26,22 +19,24 @@ export class AuthController {
     constructor(private authService: AuthService) {}
     @HttpCode(201)
     @Post('getOtp')
-    @ApiCreatedResponse({ description: 'Created Succesfully' })
+    @ApiCreatedResponse({ description: 'Created Successfully' })
     @ApiForbiddenResponse({ description: 'Unauthorized Request' })
+    @ApiUnauthorizedResponse({ description: 'Unauthorized Request' })
     getOtp(@Body() dto: getOtpDto) {
         return this.authService.getOtp(dto);
     }
 
-    @HttpCode(201)
+    @HttpCode(200)
     @Post('checkOtp')
     @ApiForbiddenResponse({ description: 'Unauthorized Request' })
     @ApiOkResponse({ description: 'authorized accepted' })
     @ApiForbiddenResponse({ description: 'Unauthorized Request' })
+    @ApiUnauthorizedResponse({ description: 'Unauthorized Request' })
     checkOtp(@Body() dto: checkOtpDto) {
         return this.authService.checkOtp(dto);
     }
 
-    @HttpCode(201)
+    @HttpCode(200)
     @Post('refreshToken')
     @ApiOperation({ summary: 'get new access token' })
     @ApiOkResponse({ description: 'new access token created' })
@@ -49,6 +44,6 @@ export class AuthController {
     @ApiBody({ type: refreshTokenDto })
     @UseGuards(RefreshJwtGuard)
     refreshToken(@GetUser() user) {
-        return this.authService.refreshToken(user);
+        return this.authService.refreshToken(user.id, user.phone);
     }
 }
