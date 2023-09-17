@@ -7,68 +7,49 @@ import { AddCategorySubsetDto, CreateCategoryDto } from './dto';
 export class CategoryService {
     constructor(private prisma: PrismaService) {}
     async create(dto: CreateCategoryDto) {
-        try {
-            const categoryDuplicated = await this.findByName(dto.name);
-            if (!categoryDuplicated) throw new duplicatedNameException();
-            const category = await this.prisma.category.create({
-                data: { name: dto.name },
-            });
-            return category;
-        } catch (error) {
-            console.log(error);
-        }
+        const categoryDuplicated = await this.findByName(dto.name);
+        if (!categoryDuplicated) throw new duplicatedNameException();
+        const category = await this.prisma.category.create({
+            data: { name: dto.name },
+        });
+        return category;
     }
 
     async findAll() {
-        try {
-            const allCategory = await this.prisma.category.findMany({
-                orderBy: { id: 'asc' },
-                include: { subParents: true, parents: true },
-            });
-            if (!allCategory) throw new categoryNotFound();
-            return allCategory;
-        } catch (error) {
-            console.log(error);
-        }
+        const allCategory = await this.prisma.category.findMany({
+            orderBy: { id: 'asc' },
+            include: { subParents: true, parents: true },
+        });
+        if (!allCategory) throw new categoryNotFound();
+        return allCategory;
     }
 
     async findOneByID(id: number) {
-        try {
-            const category = await this.prisma.category.findUnique({
-                where: { id: id },
-            });
-            if (!category) throw new categoryNotFound();
-            return category;
-        } catch (error) {
-            console.log(error);
-        }
+        const category = await this.prisma.category.findUnique({
+            where: { id: id },
+        });
+        if (!category) throw new categoryNotFound();
+        return category;
     }
 
     async findByName(name: string) {
-        try {
-            const category = await this.prisma.category.findMany({
-                where: { name: { contains: name } },
-            });
-            return category;
-        } catch (error) {
-            console.log(error);
-        }
+        const category = await this.prisma.category.findMany({
+            where: { name: { contains: name } },
+        });
+        if (!category) throw new categoryNotFound();
+        return category;
     }
 
     async addCategorySubset(id: number, dto: AddCategorySubsetDto) {
-        try {
-            const category = await this.findOneByID(id);
-            const updatedCategory = await this.prisma.category.update({
-                where: { id: category.id },
-                data: {
-                    parentsID: dto.parentsID,
-                },
-                include: { subParents: true, parents: true },
-            });
-            return updatedCategory;
-        } catch (error) {
-            console.log(error);
-        }
+        const category = await this.findOneByID(id);
+        const updatedCategory = await this.prisma.category.update({
+            where: { id: category.id },
+            data: {
+                parentsID: dto.parentsID,
+            },
+            include: { subParents: true, parents: true },
+        });
+        return updatedCategory;
     }
 
     async remove(id: number) {
