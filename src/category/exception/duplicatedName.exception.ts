@@ -1,14 +1,7 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class duplicatedNameException extends HttpException {
     constructor() {
-        super(
-            {
-                Status: 400,
-                Success: false,
-                Message: 'name of category duplicated.',
-            },
-            400,
-        );
+        super('name of category duplicated.', HttpStatus.BAD_REQUEST);
     }
 }

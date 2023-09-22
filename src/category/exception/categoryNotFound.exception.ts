@@ -1,14 +1,7 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class categoryNotFound extends HttpException {
     constructor() {
-        super(
-            {
-                Status: 404,
-                Success: false,
-                Message: 'category not find.',
-            },
-            404,
-        );
+        super('category not find.', HttpStatus.NOT_FOUND);
     }
 }
