@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class AddCategorySubsetDto {
     @IsNotEmpty({ message: 'parentsID must be required' })
@@ -8,5 +8,5 @@ export class AddCategorySubsetDto {
         description: 'id of parents category',
         required: true,
     })
-    parentsID: number;
+    childrenID: number;
 }

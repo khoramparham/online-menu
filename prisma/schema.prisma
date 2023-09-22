@@ -24,11 +24,11 @@ enum Role {
 }
 model Category {
   id  Int @id @default(autoincrement())
-  name String  @unique @db.VarChar(50)
+  name String @db.VarChar(50)
 
-  parentsID Int? @unique
+  parentsID Int?
   parents Category? @relation( "CategorySubset",fields: [parentsID],references: [id])
-  subParents Category? @relation("CategorySubset")
+  childrens Category[] @relation("CategorySubset")
   product Product[]
   
   @@index([name,parentsID,id(sort: Desc)])

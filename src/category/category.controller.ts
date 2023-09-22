@@ -18,7 +18,11 @@ import {
     ApiOperation,
     ApiTags,
 } from '@nestjs/swagger';
-import { CreateCategoryDto, AddCategorySubsetDto } from './dto';
+import {
+    CreateCategoryDto,
+    AddCategorySubsetDto,
+    updateCategoryDto,
+} from './dto';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { JwtGuard } from 'src/auth/guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
@@ -78,11 +82,41 @@ export class CategoryController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.ADMIN)
     @ApiBearerAuth('access_token')
-    @ApiOperation({ summary: 'add category parent' })
-    @ApiOkResponse({ description: 'category parent added successfully' })
+    @ApiOperation({ summary: 'category update' })
+    @ApiOkResponse({ description: 'category updated successfully' })
     @ApiNotFoundResponse({ description: 'category not find' })
-    update(@Param('id') id: number, @Body() dto: AddCategorySubsetDto) {
+    update(@Param('id') id: number, @Body() dto: updateCategoryDto) {
+        return this.categoryService.updateCategory(+id, dto);
+    }
+
+    @Patch('addCategorySubset/:id')
+    @HttpCode(200)
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @ApiBearerAuth('access_token')
+    @ApiOperation({ summary: 'add category children' })
+    @ApiOkResponse({ description: 'category children added successfully' })
+    @ApiNotFoundResponse({ description: 'category not find' })
+    addCategorySubset(
+        @Param('id') id: number,
+        @Body() dto: AddCategorySubsetDto,
+    ) {
         return this.categoryService.addCategorySubset(+id, dto);
+    }
+
+    @Delete('deleteSubsetCategory/:categoryID')
+    @HttpCode(200)
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @ApiBearerAuth('access_token')
+    @ApiOperation({ summary: 'delete category' })
+    @ApiOkResponse({ description: 'category subset deleted successfully' })
+    @ApiNotFoundResponse({ description: 'category not find' })
+    removeCategorySubset(
+        @Param('categoryID') id: string,
+        @Body() dto: AddCategorySubsetDto,
+    ) {
+        return this.categoryService.removeCategorySubset(+id, dto);
     }
 
     @Delete('deleteCategory/:categoryID')
