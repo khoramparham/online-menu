@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as path from 'path';
-import { deleteFileInPublic } from 'src/manage-file/delete-file';
 import { productNotFound } from './exception/notFoundProduct.exception';
 import { updateProductDto } from './dto/update-product';
 import { deleteInvalidPropertyInObject } from 'src/utils/deleteInvalidProperty';
@@ -10,24 +9,19 @@ import { deleteInvalidPropertyInObject } from 'src/utils/deleteInvalidProperty';
 export class ProductService {
     constructor(private readonly prisma: PrismaService) {}
     async create(dto: CreateProductDto) {
-        try {
-            dto.photo = path
-                .join(dto.fileUploadPath, dto.fileName)
-                .replace(/\\/g, '/');
-            const product = await this.prisma.product.create({
-                data: {
-                    name: dto.name,
-                    price: +dto.price,
-                    description: dto.description,
-                    photo: dto.photo,
-                    categoryID: +dto.categoryID,
-                },
-            });
-            return product;
-        } catch (error) {
-            console.log(error);
-            deleteFileInPublic(dto.photo);
-        }
+        dto.photo = path
+            .join(dto.fileUploadPath, dto.fileName)
+            .replace(/\\/g, '/');
+        const product = await this.prisma.product.create({
+            data: {
+                name: dto.name,
+                price: +dto.price,
+                description: dto.description,
+                photo: dto.photo,
+                categoryID: +dto.categoryID,
+            },
+        });
+        return product;
     }
 
     async findAll() {
@@ -48,24 +42,20 @@ export class ProductService {
     }
 
     async update(id: number, dto: updateProductDto) {
-        try {
-            const productFounded = await this.findOne(id);
-            const product = {
-                name: dto.name,
-                price: +dto.price,
-                description: dto.description,
-                photo: dto.photo,
-                categoryID: +dto.categoryID,
-            };
-            deleteInvalidPropertyInObject(product);
-            const updatedProduct = await this.prisma.product.update({
-                where: { id: productFounded.id },
-                data: product,
-            });
-            return updatedProduct;
-        } catch (error) {
-            deleteFileInPublic(dto.photo);
-        }
+        const productFounded = await this.findOne(id);
+        const product = {
+            name: dto.name,
+            price: +dto.price,
+            description: dto.description,
+            photo: dto.photo,
+            categoryID: +dto.categoryID,
+        };
+        deleteInvalidPropertyInObject(product);
+        const updatedProduct = await this.prisma.product.update({
+            where: { id: productFounded.id },
+            data: product,
+        });
+        return updatedProduct;
     }
 
     async remove(id: number) {

@@ -1,14 +1,7 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class productNotFound extends HttpException {
     constructor() {
-        super(
-            {
-                Status: 404,
-                Success: false,
-                Message: 'محصولی یافت نشد',
-            },
-            404,
-        );
+        super('محصولی یافت نشد', HttpStatus.NOT_FOUND);
     }
 }
